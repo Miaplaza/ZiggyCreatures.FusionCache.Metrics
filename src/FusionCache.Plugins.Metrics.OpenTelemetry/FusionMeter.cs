@@ -32,6 +32,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.Metrics.OpenTelemetry
         
         private readonly Meter _meter;
         private readonly MemoryCache? _cache;
+        private readonly Func<long>? _cacheItemCount;
         private readonly ISemanticConventions _conventions;
 
         /// <summary>
@@ -54,6 +55,31 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.Metrics.OpenTelemetry
         {
             _conventions = semanticConventions ?? new SemanticConventions();
             _cache = cache;
+            _cacheItemCount = cache is null ? null : () => cache.Count;
+            _meter = new Meter(meterName);
+            CreateCounters();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the FusionMeter class for a cache that is not a
+        /// <see cref="MemoryCache" />, by reporting the cache size through an accessor.
+        /// </summary>
+        /// <param name="meterName"> Name of the meter that will be used to report the metrics. </param>
+        /// <param name="cacheItemCount">
+        /// Returns the current item count of the same cache instance that was passed to FusionCache.
+        /// Is needed to report the cache size.
+        /// </param>
+        /// <param name="semanticConventions">
+        /// Semantic conventions that are used to construct instrument names.
+        /// If not provided new instance of <see cref="SemanticConventions" /> will be used.
+        /// </param>
+        public FusionMeter(
+            string meterName,
+            Func<long> cacheItemCount,
+            ISemanticConventions? semanticConventions = null)
+        {
+            _conventions = semanticConventions ?? new SemanticConventions();
+            _cacheItemCount = cacheItemCount ?? throw new ArgumentNullException(nameof(cacheItemCount));
             _meter = new Meter(meterName);
             CreateCounters();
         }
@@ -73,10 +99,10 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.Metrics.OpenTelemetry
             _cacheCapacityEvictCounter = _meter.CreateCounter<int>(_conventions.CacheCapacityEvictTagValue, description: "Cache Capacity Eviction");
             _cacheRemovedCounter = _meter.CreateCounter<int>(_conventions.CacheRemovedTagValue, description: "Cache Removed");
             
-            if(_cache != null) {
+            if(_cacheItemCount != null) {
                 _meter.CreateObservableGauge<long>(
                     _conventions.CacheItemCountTagValue,
-                    () => new Measurement<long>(_cache.Count),
+                    () => new Measurement<long>(_cacheItemCount()),
                     description: "Cache Size");
             }
         }
