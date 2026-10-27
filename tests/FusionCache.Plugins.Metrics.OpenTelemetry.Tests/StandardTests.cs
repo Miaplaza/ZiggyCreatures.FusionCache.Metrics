@@ -39,7 +39,7 @@ public class StandardTests
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-                new FusionCacheOptions(),
+                new FusionCacheOptions { DisableTagging = true },
                 memoryCache);
 
 
@@ -158,7 +158,7 @@ public class StandardTests
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-                new FusionCacheOptions(),
+                new FusionCacheOptions { DisableTagging = true },
                 memoryCache);
 
             cache.DefaultEntryOptions.Duration = duration;

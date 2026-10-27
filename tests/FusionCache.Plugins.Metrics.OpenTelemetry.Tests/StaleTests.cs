@@ -34,11 +34,13 @@ public class StaleTests : BaseTest
             .AddInMemoryExporter(exportedItems)
             .Build();
         using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-            new FusionCacheOptions(),
+            new FusionCacheOptions { DisableTagging = true },
             memoryCache);
 
         cache.DefaultEntryOptions.Duration = duration;
         cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+        // FusionCache 2.x requires explicit opt-in for stale read-only lookups.
+        cache.DefaultEntryOptions.AllowStaleOnReadOnly = true;
         cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
         cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
@@ -89,12 +91,14 @@ public class StaleTests : BaseTest
             .AddInMemoryExporter(exportedItems)
             .Build();
         using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-            new FusionCacheOptions(),
+            new FusionCacheOptions { DisableTagging = true },
             memoryCache);
 
 
         cache.DefaultEntryOptions.Duration = duration; // duration in minutes
         cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+        // FusionCache 2.x requires explicit opt-in for stale read-only lookups.
+        cache.DefaultEntryOptions.AllowStaleOnReadOnly = true;
         cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
         cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
         cache.DefaultEntryOptions.FactorySoftTimeout = softTimeout;
@@ -103,7 +107,7 @@ public class StaleTests : BaseTest
         fusionMeter.Start(cache);
 
         // SET: +1
-        cache.GetOrSet("foo", (ctx, _) =>
+        cache.GetOrSet<int>("foo", (ctx, _) =>
         {
             // Duration set by factory return value
             ctx.Options.SetDuration(adaptiveDuration).SetFailSafe(true);
@@ -113,7 +117,7 @@ public class StaleTests : BaseTest
 
 
         // HIT: +1
-        cache.GetOrSet("foo", (ctx, _) =>
+        cache.GetOrSet<int>("foo", (ctx, _) =>
         {
             // Duration overriden in factory from minutes to seconds.
             ctx.Options.SetDuration(adaptiveDuration).SetFailSafe(true);
@@ -125,7 +129,7 @@ public class StaleTests : BaseTest
         Thread.Sleep(adaptiveDuration);
 
         // HIT (STALE): +1
-        cache.GetOrSet("foo", (ctx, _) =>
+        cache.GetOrSet<int>("foo", (ctx, _) =>
         {
             Thread.Sleep(throttleDuration);
             // Duration overriden in factory from minutes to seconds.

@@ -30,7 +30,7 @@ public class CountTests : BaseTest
             .AddInMemoryExporter(exportedItems)
             .Build();
         using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-            new FusionCacheOptions(),
+            new FusionCacheOptions { DisableTagging = true },
             memoryCache);
 
         fusionMeter.Start(cache);
