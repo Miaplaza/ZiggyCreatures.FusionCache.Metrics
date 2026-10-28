@@ -36,7 +36,7 @@ public class BackgroundFailSafeTests : BaseTest
             .AddInMemoryExporter(exportedItems)
             .Build();
         using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-            new FusionCacheOptions(),
+            new FusionCacheOptions { DisableTagging = true },
             memoryCache);
 
         cache.DefaultEntryOptions.Duration = duration;
@@ -119,7 +119,7 @@ public class BackgroundFailSafeTests : BaseTest
             .AddInMemoryExporter(exportedItems)
             .Build();
         using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-            new FusionCacheOptions(),
+            new FusionCacheOptions { DisableTagging = true },
             memoryCache);
 
         cache.DefaultEntryOptions.Duration = duration;
@@ -134,7 +134,7 @@ public class BackgroundFailSafeTests : BaseTest
         // INITIAL
         // MISS: +1
         // SET: +1
-        await cache.GetOrSetAsync("foo", async (ctx, _) =>
+        await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
         {
             await Task.Delay(1, _);
             // Duration set by factory return value
@@ -148,7 +148,7 @@ public class BackgroundFailSafeTests : BaseTest
 
         // HIT (STALE): +1
         // FAIL-SAFE: +1
-        _ = await cache.GetOrSetAsync("foo", async (ctx, _) =>
+        _ = await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
         {
             await Task.Delay(hardTimeout, _);
             // Duration set by factory return value

@@ -36,7 +36,7 @@ namespace FusionCache.Plugins.Metrics.OpenTelemetry.Tests
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-                new FusionCacheOptions(),
+                new FusionCacheOptions { DisableTagging = true },
                 memoryCache);
 
             cache.DefaultEntryOptions.Duration = duration;
@@ -83,7 +83,7 @@ namespace FusionCache.Plugins.Metrics.OpenTelemetry.Tests
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             using var cache = new ZiggyCreatures.Caching.Fusion.FusionCache(
-                new FusionCacheOptions(),
+                new FusionCacheOptions { DisableTagging = true },
                 memoryCache);
 
             cache.DefaultEntryOptions.Duration = duration;
